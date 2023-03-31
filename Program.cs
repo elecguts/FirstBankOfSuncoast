@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FirstBankOfSuncoast
 {
@@ -8,14 +9,27 @@ namespace FirstBankOfSuncoast
         public string depositOrWithdrawal { get; set; }
         public string checkingOrSaving { get; set; }
         public double transactionAmount { get; set; }
-
-        //public Transaction(string inOrOut, string checkOrSave, double amount)
-        //{
-        //    depositOrWithdrawal = inOrOut;
-        //    checkingOrSaving = checkOrSave;
-        //    transactionAmount = amount;
-        //}
-
+    }
+    class TransactionHistory
+    {
+        public List<Transaction> transactions = new List<Transaction>();
+        public double TotalAccount(string accountType)
+        {
+            double totalInChecking = 0;
+            var query = transactions.Where(transaction => transaction.checkingOrSaving == accountType);
+            foreach (var transaction in query)
+            {
+                if (transaction.depositOrWithdrawal == "deposit")
+                {
+                    totalInChecking = totalInChecking + transaction.transactionAmount;
+                }
+                else
+                {
+                    totalInChecking = totalInChecking - transaction.transactionAmount;
+                }
+            }
+            return totalInChecking;
+        }
     }
     class Program
     {
@@ -48,7 +62,7 @@ namespace FirstBankOfSuncoast
             Console.WriteLine();
             Console.WriteLine("Welcome to The Machine!");
 
-            var transactions = new List<Transaction>();
+            var user1History = new TransactionHistory();
 
             var menuLoop = true;
 
@@ -79,7 +93,7 @@ namespace FirstBankOfSuncoast
                                 confirmedDepositToCheckingTransaction.checkingOrSaving = "checking";
                                 confirmedDepositToCheckingTransaction.depositOrWithdrawal = "deposit";
                                 confirmedDepositToCheckingTransaction.transactionAmount = depositChecking;
-                                transactions.Add(confirmedDepositToCheckingTransaction);
+                                user1History.transactions.Add(confirmedDepositToCheckingTransaction);
                                 Console.WriteLine("Deposited in checking!");
                             }
                         }
@@ -93,7 +107,7 @@ namespace FirstBankOfSuncoast
                                 confirmedDepositToSavingsTransaction.checkingOrSaving = "saving";
                                 confirmedDepositToSavingsTransaction.depositOrWithdrawal = "deposit";
                                 confirmedDepositToSavingsTransaction.transactionAmount = depositSavings;
-                                transactions.Add(confirmedDepositToSavingsTransaction);
+                                user1History.transactions.Add(confirmedDepositToSavingsTransaction);
                                 Console.WriteLine("Deposited in savings!");
                             }
 
@@ -122,7 +136,7 @@ namespace FirstBankOfSuncoast
                                 confirmedWithdrawFromCheckingTransaction.checkingOrSaving = "checking";
                                 confirmedWithdrawFromCheckingTransaction.depositOrWithdrawal = "withdrawal";
                                 confirmedWithdrawFromCheckingTransaction.transactionAmount = withdrawChecking;
-                                transactions.Add(confirmedWithdrawFromCheckingTransaction);
+                                user1History.transactions.Add(confirmedWithdrawFromCheckingTransaction);
                                 Console.WriteLine("Withdrawn from checking!");
                             }
                         }
@@ -136,7 +150,7 @@ namespace FirstBankOfSuncoast
                                 confirmedWithdrawalFromSavingsTransaction.checkingOrSaving = "saving";
                                 confirmedWithdrawalFromSavingsTransaction.depositOrWithdrawal = "withdrawal";
                                 confirmedWithdrawalFromSavingsTransaction.transactionAmount = withdrawSavings;
-                                transactions.Add(confirmedWithdrawalFromSavingsTransaction);
+                                user1History.transactions.Add(confirmedWithdrawalFromSavingsTransaction);
                                 Console.WriteLine("Withdrawn from savings!");
                             }
 
@@ -151,10 +165,11 @@ namespace FirstBankOfSuncoast
                 {
                     // choice to see either all checking or all savings transactions
                     Console.WriteLine("list of transactions");
-                    foreach (var transaction in transactions)
+                    foreach (var transaction in user1History.transactions)
                     {
                         Console.WriteLine($"{transaction.checkingOrSaving} {transaction.depositOrWithdrawal} {transaction.transactionAmount}");
                     }
+                    Console.WriteLine($"${user1History.TotalAccount("checking")} in checking");
                 }
             }
 
