@@ -15,20 +15,20 @@ namespace FirstBankOfSuncoast
         public List<Transaction> transactions = new List<Transaction>();
         public double TotalAccount(string accountType)
         {
-            double totalInChecking = 0;
+            double totalInAccount = 0;
             var query = transactions.Where(transaction => transaction.checkingOrSaving == accountType);
             foreach (var transaction in query)
             {
                 if (transaction.depositOrWithdrawal == "deposit")
                 {
-                    totalInChecking = totalInChecking + transaction.transactionAmount;
+                    totalInAccount = totalInAccount + transaction.transactionAmount;
                 }
                 else
                 {
-                    totalInChecking = totalInChecking - transaction.transactionAmount;
+                    totalInAccount = totalInAccount - transaction.transactionAmount;
                 }
             }
-            return totalInChecking;
+            return totalInAccount;
         }
     }
     class Program
@@ -129,29 +129,43 @@ namespace FirstBankOfSuncoast
                         if (menu2ndChoice == "C")
                         {
                             var withdrawChecking = PromptForPositiveDouble("How much would you like to withdraw from checking? ");
-                            var menu3rdChoice = PromptForString($"You'd like to withdraw ${withdrawChecking} from checking? (y) to confirm ").ToUpper();
-                            if (menu3rdChoice == "Y")
+                            if (user1History.TotalAccount("checking") - withdrawChecking >= 0)
                             {
-                                var confirmedWithdrawFromCheckingTransaction = new Transaction();
-                                confirmedWithdrawFromCheckingTransaction.checkingOrSaving = "checking";
-                                confirmedWithdrawFromCheckingTransaction.depositOrWithdrawal = "withdrawal";
-                                confirmedWithdrawFromCheckingTransaction.transactionAmount = withdrawChecking;
-                                user1History.transactions.Add(confirmedWithdrawFromCheckingTransaction);
-                                Console.WriteLine("Withdrawn from checking!");
+                                var menu3rdChoice = PromptForString($"You'd like to withdraw ${withdrawChecking} from checking? (y) to confirm ").ToUpper();
+                                if (menu3rdChoice == "Y")
+                                {
+                                    var confirmedWithdrawFromCheckingTransaction = new Transaction();
+                                    confirmedWithdrawFromCheckingTransaction.checkingOrSaving = "checking";
+                                    confirmedWithdrawFromCheckingTransaction.depositOrWithdrawal = "withdrawal";
+                                    confirmedWithdrawFromCheckingTransaction.transactionAmount = withdrawChecking;
+                                    user1History.transactions.Add(confirmedWithdrawFromCheckingTransaction);
+                                    Console.WriteLine("Withdrawn from checking!");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Your checking account currently has ${user1History.TotalAccount("checking")}");
                             }
                         }
                         else if (menu2ndChoice == "S")
                         {
                             var withdrawSavings = PromptForPositiveDouble("How much would you like to withdraw from savings? ");
-                            var menu3rdChoice = PromptForString($"You'd like to withdraw ${withdrawSavings} from savings? (y) to confirm ").ToUpper();
-                            if (menu3rdChoice == "Y")
+                            if (user1History.TotalAccount("checking") - withdrawSavings >= 0)
                             {
-                                var confirmedWithdrawalFromSavingsTransaction = new Transaction();
-                                confirmedWithdrawalFromSavingsTransaction.checkingOrSaving = "saving";
-                                confirmedWithdrawalFromSavingsTransaction.depositOrWithdrawal = "withdrawal";
-                                confirmedWithdrawalFromSavingsTransaction.transactionAmount = withdrawSavings;
-                                user1History.transactions.Add(confirmedWithdrawalFromSavingsTransaction);
-                                Console.WriteLine("Withdrawn from savings!");
+                                var menu3rdChoice = PromptForString($"You'd like to withdraw ${withdrawSavings} from savings? (y) to confirm ").ToUpper();
+                                if (menu3rdChoice == "Y")
+                                {
+                                    var confirmedWithdrawalFromSavingsTransaction = new Transaction();
+                                    confirmedWithdrawalFromSavingsTransaction.checkingOrSaving = "saving";
+                                    confirmedWithdrawalFromSavingsTransaction.depositOrWithdrawal = "withdrawal";
+                                    confirmedWithdrawalFromSavingsTransaction.transactionAmount = withdrawSavings;
+                                    user1History.transactions.Add(confirmedWithdrawalFromSavingsTransaction);
+                                    Console.WriteLine("Withdrawn from savings!");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Your savings account currently has ${user1History.TotalAccount("saving")}");
                             }
 
                         }
@@ -170,6 +184,7 @@ namespace FirstBankOfSuncoast
                         Console.WriteLine($"{transaction.checkingOrSaving} {transaction.depositOrWithdrawal} {transaction.transactionAmount}");
                     }
                     Console.WriteLine($"${user1History.TotalAccount("checking")} in checking");
+                    Console.WriteLine($"${user1History.TotalAccount("saving")} in savings");
                 }
             }
 
