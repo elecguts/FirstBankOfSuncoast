@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace FirstBankOfSuncoast
 {
@@ -29,6 +33,16 @@ namespace FirstBankOfSuncoast
                 }
             }
             return totalInAccount;
+        }
+        public void SaveAccount()
+        {
+            var fileWriter = new StreamWriter("transactions.csv");
+
+            var csvWriter = new CsvWriter(fileWriter, CultureInfo.InvariantCulture);
+
+            csvWriter.WriteRecords(transactions);
+
+            fileWriter.Close();
         }
     }
     class Program
@@ -62,7 +76,24 @@ namespace FirstBankOfSuncoast
             Console.WriteLine();
             Console.WriteLine("Welcome to The Machine!");
 
+            TextReader reader;
+            if (File.Exists("transactions.csv"))
+            {
+                reader = new StreamReader("transactions.csv");
+            }
+            else
+            {
+                reader = new StringReader("");
+            }
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+            };
+            var csvReader = new CsvReader(reader, config);
+
             var user1History = new TransactionHistory();
+            user1History.transactions = csvReader.GetRecords<Transaction>().ToList();
+            reader.Close();
 
             var menuLoop = true;
 
@@ -70,11 +101,18 @@ namespace FirstBankOfSuncoast
             {
                 var menu2Loop = true;
                 Console.WriteLine();
-                var menuChoice = PromptForString("(D)eposit\n(W)ithdrawal\n(T)ransaction History\n(Q)uit\n").ToUpper();
+                var menuChoice = PromptForString("(D)eposit\n(W)ithdrawal\n(T)ransaction History\n(B)alances\n(Q)uit\n").ToUpper();
 
                 if (menuChoice == "Q")
                 {
                     menuLoop = false;
+                }
+                else if (menuChoice == "B")
+                {
+                    Console.WriteLine();
+                    Console.WriteLine($"${user1History.TotalAccount("checking")} in checking");
+                    Console.WriteLine($"${user1History.TotalAccount("saving")} in savings");
+                    Console.WriteLine();
                 }
                 else if (menuChoice == "D")
                 {
@@ -94,6 +132,7 @@ namespace FirstBankOfSuncoast
                                 confirmedDepositToCheckingTransaction.depositOrWithdrawal = "deposit";
                                 confirmedDepositToCheckingTransaction.transactionAmount = depositChecking;
                                 user1History.transactions.Add(confirmedDepositToCheckingTransaction);
+                                user1History.SaveAccount();
                                 Console.WriteLine("Deposited in checking!");
                             }
                         }
@@ -108,6 +147,7 @@ namespace FirstBankOfSuncoast
                                 confirmedDepositToSavingsTransaction.depositOrWithdrawal = "deposit";
                                 confirmedDepositToSavingsTransaction.transactionAmount = depositSavings;
                                 user1History.transactions.Add(confirmedDepositToSavingsTransaction);
+                                user1History.SaveAccount();
                                 Console.WriteLine("Deposited in savings!");
                             }
 
@@ -139,6 +179,7 @@ namespace FirstBankOfSuncoast
                                     confirmedWithdrawFromCheckingTransaction.depositOrWithdrawal = "withdrawal";
                                     confirmedWithdrawFromCheckingTransaction.transactionAmount = withdrawChecking;
                                     user1History.transactions.Add(confirmedWithdrawFromCheckingTransaction);
+                                    user1History.SaveAccount();
                                     Console.WriteLine("Withdrawn from checking!");
                                 }
                             }
@@ -150,7 +191,7 @@ namespace FirstBankOfSuncoast
                         else if (menu2ndChoice == "S")
                         {
                             var withdrawSavings = PromptForPositiveDouble("How much would you like to withdraw from savings? ");
-                            if (user1History.TotalAccount("checking") - withdrawSavings >= 0)
+                            if (user1History.TotalAccount("saving") - withdrawSavings >= 0)
                             {
                                 var menu3rdChoice = PromptForString($"You'd like to withdraw ${withdrawSavings} from savings? (y) to confirm ").ToUpper();
                                 if (menu3rdChoice == "Y")
@@ -160,6 +201,7 @@ namespace FirstBankOfSuncoast
                                     confirmedWithdrawalFromSavingsTransaction.depositOrWithdrawal = "withdrawal";
                                     confirmedWithdrawalFromSavingsTransaction.transactionAmount = withdrawSavings;
                                     user1History.transactions.Add(confirmedWithdrawalFromSavingsTransaction);
+                                    user1History.SaveAccount();
                                     Console.WriteLine("Withdrawn from savings!");
                                 }
                             }
